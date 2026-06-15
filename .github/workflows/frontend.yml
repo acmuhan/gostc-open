@@ -1,4 +1,4 @@
-name: Frontend Build
+name: Web and Server Build
 
 on:
   workflow_dispatch:
@@ -7,10 +7,12 @@ on:
       - main
     paths:
       - 'web/**'
+      - 'server/**'
       - '.github/workflows/frontend.yml'
   pull_request:
     paths:
       - 'web/**'
+      - 'server/**'
       - '.github/workflows/frontend.yml'
 
 permissions:
@@ -18,11 +20,8 @@ permissions:
 
 jobs:
   build:
-    name: Build web frontend
+    name: Build web and server
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./web
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,10 +33,12 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
+        working-directory: ./web
         run: npm ci
 
       - name: Build frontend
+        working-directory: ./web
         run: npm run build
 
       - name: Upload frontend artifact
@@ -45,4 +46,44 @@ jobs:
         with:
           name: web-dist
           path: web/dist
+          if-no-files-found: error
+
+      - name: Package frontend for server embed
+        working-directory: ./web
+        run: zip -r dist.zip dist
+
+      - name: Copy frontend package into server
+        run: |
+          mkdir -p server/web
+          mv web/dist.zip server/web/
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: server/go.sum
+
+      - name: Verify backend formatting
+        working-directory: ./server
+        run: test -z "$(gofmt -l .)"
+
+      - name: Test backend
+        working-directory: ./server
+        run: go test ./...
+
+      - name: Build backend
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --snapshot --clean --timeout 300m --parallelism=2
+          workdir: ./server
+
+      - name: Upload server artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-dist
+          path: |
+            server/dist/*.tar.gz
+            server/dist/*.zip
           if-no-files-found: error

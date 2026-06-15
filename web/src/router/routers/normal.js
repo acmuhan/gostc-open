@@ -1,4 +1,11 @@
 export const normalRouters = [
+
+    {
+        path: '/normal/wallet',
+        name: 'NormalWallet',
+        component: () => import('../../views/normal/wallet/index.vue'),
+        meta: { title: '钱包中心', layout: 'simple', hidden: 2, icon: '<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M128 224h768a64 64 0 0 1 64 64v448a64 64 0 0 1-64 64H128a64 64 0 0 1-64-64V288a64 64 0 0 1 64-64zm704 320a64 64 0 1 0 0-128 64 64 0 0 0 0 128z" fill="#888888"/></svg>' }
+    },
     {
         path: '/dashboard',
         name: 'Dashboard',

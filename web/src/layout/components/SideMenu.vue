@@ -32,22 +32,23 @@ const renderMenuIcon = (option) => {
 const menuSelectChange = (key, item) => {
   if (item?.link) {
     window.open(item.link, '_blank')
+    localStore().isCollapsed = true
     return
   }
   if (router.currentRoute.value.name === key) {
+    localStore().isCollapsed = true
     return
   }
   localStore().menuKey = key
   router.push({
     name: key
   })
+  localStore().isCollapsed = true
 }
 
 const onMaskClick = () => {
   localStore().isCollapsed = true
 }
-const sideContainer = ref()
-
 const menu = ref()
 watch(router.currentRoute, () => {
   nextTick(() => {
@@ -59,14 +60,13 @@ watch(router.currentRoute, () => {
 </script>
 
 <template>
-  <div ref="sideContainer">
+  <div class="side-menu-container">
     <n-drawer :show="!localStore().isCollapsed"
               width="80%"
               placement="left"
               :trap-focus="false"
-              :block-scroll="false"
+              :block-scroll="true"
               :on-mask-click="onMaskClick"
-              :to="sideContainer"
     >
       <n-drawer-content :title="appStore().siteConfig.title">
         <n-scrollbar style="height: calc(100vh - 60px)">
@@ -86,6 +86,23 @@ watch(router.currentRoute, () => {
 </template>
 
 <style scoped lang="scss">
+.side-menu-container {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  width: 0;
+  height: 0;
+}
+
+:deep(.n-drawer-mask),
+:deep(.n-drawer) {
+  position: fixed !important;
+}
+
+:deep(.n-drawer .n-drawer-content) {
+  max-width: 320px;
+}
+
 :deep(.n-menu-item-content--selected)::before {
 
 }

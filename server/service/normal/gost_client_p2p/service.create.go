@@ -10,6 +10,7 @@ import (
 	"server/repository"
 	cache2 "server/repository/cache"
 	"server/repository/query"
+	"server/service/common/commerce"
 	"server/service/common/node_rule"
 	"server/service/engine"
 	"time"
@@ -72,37 +73,9 @@ func (service *service) Create(claims jwt.Claims, req CreateReq) error {
 			return errors.New("客户端错误")
 		}
 
-		var expAt = time.Now().Unix()
-		switch cfg.ChargingType {
-		case model.GOST_CONFIG_CHARGING_CUCLE_DAY:
-			expAt = time.Now().Add(time.Duration(cfg.Cycle) * 24 * time.Hour).Unix()
-			if user.Amount.LessThan(cfg.Amount) {
-				return errors.New("积分不足")
-			}
-			if _, err := tx.SystemUser.Where(
-				tx.SystemUser.Code.Eq(user.Code),
-				tx.SystemUser.Version.Eq(user.Version),
-			).UpdateSimple(
-				tx.SystemUser.Amount.Value(user.Amount.Sub(cfg.Amount)),
-				tx.SystemUser.Version.Value(user.Version+1),
-			); err != nil {
-				log.Error("扣减积分失败", zap.Error(err))
-				return errors.New("操作失败")
-			}
-		case model.GOST_CONFIG_CHARGING_ONLY_ONCE:
-			if user.Amount.LessThan(cfg.Amount) {
-				return errors.New("积分不足")
-			}
-			if _, err := tx.SystemUser.Where(
-				tx.SystemUser.Code.Eq(user.Code),
-				tx.SystemUser.Version.Eq(user.Version),
-			).UpdateSimple(
-				tx.SystemUser.Amount.Value(user.Amount.Sub(cfg.Amount)),
-				tx.SystemUser.Version.Value(user.Version+1),
-			); err != nil {
-				log.Error("扣减积分失败", zap.Error(err))
-				return errors.New("操作失败")
-			}
+		var expAt = commerce.ExpAtByConfig(cfg, time.Now())
+		if _, err := commerce.PayPackage(tx, user, cfg.Amount, model.ORDER_BIZ_P2P_CREATE, "", model.Map{"package": commerce.SnapshotConfig(cfg), "nodeCode": node.Code, "clientCode": client.Code}, "购买套餐"); err != nil {
+			return err
 		}
 
 		var p2p = model.GostClientP2P{

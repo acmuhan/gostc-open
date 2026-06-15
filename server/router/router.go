@@ -52,6 +52,8 @@ func init() {
 		admin.InitSystemNotice(adminGroup)
 		admin.InitSystemConfig(adminGroup)
 		admin.InitDashboard(adminGroup)
+		admin.InitWallet(adminGroup)
+		admin.InitCommerceCdk(adminGroup)
 
 		publicGroup := engine.Group("api/v1/public")
 		public.InitSystemConfig(publicGroup)
@@ -74,6 +76,9 @@ func init() {
 		normal.InitSystemNotice(normalGroup)
 		normal.InitDashboard(normalGroup)
 		normal.InitFrpClientCfg(normalGroup)
+		normal.InitWallet(normalGroup)
+		normal.InitCommerceOrder(normalGroup)
+		normal.InitCommerceCdk(normalGroup)
 
 		openGroup := engine.Group("api/v1/open")
 		open.InitAuth(openGroup.Group("auth"))

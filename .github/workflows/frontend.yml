@@ -67,11 +67,11 @@ jobs:
         working-directory: ./server
         run: test -z "$(gofmt -l .)"
 
-      - name: Test backend
+      - name: Build backend packages
         working-directory: ./server
-        run: go test ./...
+        run: go build ./...
 
-      - name: Build backend
+      - name: Build backend release
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser

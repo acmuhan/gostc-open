@@ -122,7 +122,8 @@ type Query struct {
 	SystemUserEmail      systemUserEmail
 }
 
-func (q *Query) Available() bool { return q.db != nil }
+func (q *Query) Available() bool        { return q.db != nil }
+func (q *Query) UnderlyingDB() *gorm.DB { return q.db }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{

@@ -8,8 +8,8 @@ import (
 	"server/repository"
 	"server/repository/cache"
 	"server/repository/query"
+	"server/service/common/commerce"
 	"server/service/engine"
-	"time"
 )
 
 type RenewReq struct {
@@ -28,32 +28,15 @@ func (service *service) Renew(claims jwt.Claims, req RenewReq) error {
 			return errors.New("操作失败")
 		}
 
-		var expAt = time.Unix(tunnel.ExpAt, 0)
-		if expAt.Unix() < time.Now().Unix() {
-			expAt = time.Now()
-		}
-		switch tunnel.ChargingType {
-		case model.GOST_CONFIG_CHARGING_CUCLE_DAY:
-			expAt = expAt.Add(time.Duration(tunnel.Cycle) * 24 * time.Hour)
-			if user.Amount.LessThan(tunnel.Amount) {
-				return errors.New("积分不足")
-			}
-
-			if _, err := tx.SystemUser.Where(
-				tx.SystemUser.Code.Eq(user.Code),
-				tx.SystemUser.Version.Eq(user.Version),
-			).UpdateSimple(
-				tx.SystemUser.Amount.Value(user.Amount.Sub(tunnel.Amount)),
-				tx.SystemUser.Version.Value(user.Version+1),
-			); err != nil {
-				log.Error("扣减积分失败", zap.Error(err))
-				return errors.New("操作失败")
-			}
-		case model.GOST_CONFIG_CHARGING_ONLY_ONCE, model.GOST_CONFIG_CHARGING_FREE:
+		if tunnel.ChargingType == model.GOST_CONFIG_CHARGING_ONLY_ONCE || tunnel.ChargingType == model.GOST_CONFIG_CHARGING_FREE {
 			return nil
 		}
+		expAt := commerce.RenewExpAt(tunnel.ExpAt, tunnel.Cycle)
+		if _, err := commerce.PayPackage(tx, user, tunnel.Amount, model.ORDER_BIZ_TUNNEL_RENEW, tunnel.Code, model.Map{"tunnelCode": tunnel.Code, "cycle": tunnel.Cycle, "amount": tunnel.Amount}, "续费套餐"); err != nil {
+			return err
+		}
 		tunnel.Status = 1
-		tunnel.ExpAt = expAt.Unix()
+		tunnel.ExpAt = expAt
 		if err := tx.GostClientTunnel.Save(tunnel); err != nil {
 			log.Error("续费用户端口转发失败", zap.Error(err))
 			return errors.New("操作失败")

@@ -8,8 +8,8 @@ import (
 	"server/repository"
 	"server/repository/cache"
 	"server/repository/query"
+	"server/service/common/commerce"
 	"server/service/engine"
-	"time"
 )
 
 type RenewReq struct {
@@ -32,32 +32,15 @@ func (service *service) Renew(claims jwt.Claims, req RenewReq) error {
 			return errors.New("操作失败")
 		}
 
-		var expAt = time.Unix(proxy.ExpAt, 0)
-		if expAt.Unix() < time.Now().Unix() {
-			expAt = time.Now()
-		}
-		switch proxy.ChargingType {
-		case model.GOST_CONFIG_CHARGING_CUCLE_DAY:
-			expAt = expAt.Add(time.Duration(proxy.Cycle) * 24 * time.Hour)
-			if user.Amount.LessThan(proxy.Amount) {
-				return errors.New("积分不足")
-			}
-
-			if _, err := tx.SystemUser.Where(
-				tx.SystemUser.Code.Eq(user.Code),
-				tx.SystemUser.Version.Eq(user.Version),
-			).UpdateSimple(
-				tx.SystemUser.Amount.Value(user.Amount.Sub(proxy.Amount)),
-				tx.SystemUser.Version.Value(user.Version+1),
-			); err != nil {
-				log.Error("扣减积分失败", zap.Error(err))
-				return errors.New("操作失败")
-			}
-		case model.GOST_CONFIG_CHARGING_ONLY_ONCE, model.GOST_CONFIG_CHARGING_FREE:
+		if proxy.ChargingType == model.GOST_CONFIG_CHARGING_ONLY_ONCE || proxy.ChargingType == model.GOST_CONFIG_CHARGING_FREE {
 			return nil
 		}
+		expAt := commerce.RenewExpAt(proxy.ExpAt, proxy.Cycle)
+		if _, err := commerce.PayPackage(tx, user, proxy.Amount, model.ORDER_BIZ_PROXY_RENEW, proxy.Code, model.Map{"tunnelCode": proxy.Code, "cycle": proxy.Cycle, "amount": proxy.Amount}, "续费套餐"); err != nil {
+			return err
+		}
 		proxy.Status = 1
-		proxy.ExpAt = expAt.Unix()
+		proxy.ExpAt = expAt
 		if err := tx.GostClientProxy.Save(proxy); err != nil {
 			log.Error("续费用户端口转发失败", zap.Error(err))
 			return errors.New("操作失败")

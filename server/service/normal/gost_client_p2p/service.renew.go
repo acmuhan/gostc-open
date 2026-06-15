@@ -8,8 +8,8 @@ import (
 	"server/repository"
 	"server/repository/cache"
 	"server/repository/query"
+	"server/service/common/commerce"
 	"server/service/engine"
-	"time"
 )
 
 type RenewReq struct {
@@ -28,32 +28,15 @@ func (service *service) Renew(claims jwt.Claims, req RenewReq) error {
 			return errors.New("操作失败")
 		}
 
-		var expAt = time.Unix(p2p.ExpAt, 0)
-		if expAt.Unix() < time.Now().Unix() {
-			expAt = time.Now()
-		}
-		switch p2p.ChargingType {
-		case model.GOST_CONFIG_CHARGING_CUCLE_DAY:
-			expAt = expAt.Add(time.Duration(p2p.Cycle) * 24 * time.Hour)
-			if user.Amount.LessThan(p2p.Amount) {
-				return errors.New("积分不足")
-			}
-
-			if _, err := tx.SystemUser.Where(
-				tx.SystemUser.Code.Eq(user.Code),
-				tx.SystemUser.Version.Eq(user.Version),
-			).UpdateSimple(
-				tx.SystemUser.Amount.Value(user.Amount.Sub(p2p.Amount)),
-				tx.SystemUser.Version.Value(user.Version+1),
-			); err != nil {
-				log.Error("扣减积分失败", zap.Error(err))
-				return errors.New("操作失败")
-			}
-		case model.GOST_CONFIG_CHARGING_ONLY_ONCE, model.GOST_CONFIG_CHARGING_FREE:
+		if p2p.ChargingType == model.GOST_CONFIG_CHARGING_ONLY_ONCE || p2p.ChargingType == model.GOST_CONFIG_CHARGING_FREE {
 			return nil
 		}
+		expAt := commerce.RenewExpAt(p2p.ExpAt, p2p.Cycle)
+		if _, err := commerce.PayPackage(tx, user, p2p.Amount, model.ORDER_BIZ_P2P_RENEW, p2p.Code, model.Map{"tunnelCode": p2p.Code, "cycle": p2p.Cycle, "amount": p2p.Amount}, "续费套餐"); err != nil {
+			return err
+		}
 		p2p.Status = 1
-		p2p.ExpAt = expAt.Unix()
+		p2p.ExpAt = expAt
 		if err := tx.GostClientP2P.Save(p2p); err != nil {
 			log.Error("续费用户端口转发失败", zap.Error(err))
 			return errors.New("操作失败")

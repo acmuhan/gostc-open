@@ -16,7 +16,7 @@ func InitRouter() {
 		gin.SetMode(gin.DebugMode)
 	}
 	engine = gin.Default()
-	
+
 	if Route != nil {
 		Route(engine)
 	}

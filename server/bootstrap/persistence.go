@@ -68,6 +68,10 @@ func InitPersistence() {
 		&model.GostNodePort{},
 		&model.GostNodeConfig{},
 		&model.FrpClientCfg{},
+		&model.WalletLedger{},
+		&model.CommerceOrder{},
+		&model.CommerceCdk{},
+		&model.CommerceCdkRedeem{},
 	); err != nil {
 		global.Logger.Fatal("init table struct fail", zap.Error(err))
 		Release()

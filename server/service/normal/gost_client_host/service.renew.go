@@ -8,7 +8,7 @@ import (
 	"server/repository"
 	"server/repository/cache"
 	"server/repository/query"
-	"time"
+	"server/service/common/commerce"
 )
 
 type RenewReq struct {
@@ -31,32 +31,15 @@ func (service *service) Renew(claims jwt.Claims, req RenewReq) error {
 			return errors.New("操作失败")
 		}
 
-		var expAt = time.Unix(host.ExpAt, 0)
-		if expAt.Unix() < time.Now().Unix() {
-			expAt = time.Now()
-		}
-		switch host.ChargingType {
-		case model.GOST_CONFIG_CHARGING_CUCLE_DAY:
-			expAt = expAt.Add(time.Duration(host.Cycle) * 24 * time.Hour)
-			if user.Amount.LessThan(host.Amount) {
-				return errors.New("积分不足")
-			}
-
-			if _, err := tx.SystemUser.Where(
-				tx.SystemUser.Code.Eq(user.Code),
-				tx.SystemUser.Version.Eq(user.Version),
-			).UpdateSimple(
-				tx.SystemUser.Amount.Value(user.Amount.Sub(host.Amount)),
-				tx.SystemUser.Version.Value(user.Version+1),
-			); err != nil {
-				log.Error("扣减积分失败", zap.Error(err))
-				return errors.New("操作失败")
-			}
-		case model.GOST_CONFIG_CHARGING_ONLY_ONCE, model.GOST_CONFIG_CHARGING_FREE:
+		if host.ChargingType == model.GOST_CONFIG_CHARGING_ONLY_ONCE || host.ChargingType == model.GOST_CONFIG_CHARGING_FREE {
 			return nil
 		}
+		expAt := commerce.RenewExpAt(host.ExpAt, host.Cycle)
+		if _, err := commerce.PayPackage(tx, user, host.Amount, model.ORDER_BIZ_HOST_RENEW, host.Code, model.Map{"hostCode": host.Code, "cycle": host.Cycle, "amount": host.Amount}, "续费套餐"); err != nil {
+			return err
+		}
 		host.Status = 1
-		host.ExpAt = expAt.Unix()
+		host.ExpAt = expAt
 		if err := tx.GostClientHost.Save(host); err != nil {
 			log.Error("续费用户端口转发失败", zap.Error(err))
 			return errors.New("操作失败")

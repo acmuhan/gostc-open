@@ -50,6 +50,6 @@ func (s *service) Ledger(claims jwt.Claims, req LedgerReq) (any, int64) {
 	}
 	var list []map[string]any
 	var total int64
-	commerce.DB(db).Table("wallet_ledgers").Where("user_code = ?", claims.Code).Order("id desc").Count(&total).Offset((req.Page - 1) * req.Size).Limit(req.Size).Find(&list)
+	commerce.DB(db).Table("wallet_ledger").Where("user_code = ?", claims.Code).Order("id desc").Count(&total).Offset((req.Page - 1) * req.Size).Limit(req.Size).Find(&list)
 	return list, total
 }

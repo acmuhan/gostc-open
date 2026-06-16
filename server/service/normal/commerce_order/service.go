@@ -26,7 +26,7 @@ func (s *service) Page(claims jwt.Claims, req PageReq) (any, int64) {
 	}
 	var list []map[string]any
 	var total int64
-	q := commerce.DB(db).Table("commerce_orders").Where("user_code = ?", claims.Code)
+	q := commerce.DB(db).Table("commerce_order").Where("user_code = ?", claims.Code)
 	if req.Status > 0 {
 		q = q.Where("status = ?", req.Status)
 	}

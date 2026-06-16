@@ -88,7 +88,7 @@ func (s *service) Page(req PageReq) (any, int64) {
 	}
 	var list []map[string]any
 	var total int64
-	q := commerce.DB(db).Table("commerce_cdks")
+	q := commerce.DB(db).Table("commerce_cdk")
 	if req.Status > 0 {
 		q = q.Where("status = ?", req.Status)
 	}

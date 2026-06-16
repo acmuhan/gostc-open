@@ -22,12 +22,12 @@
 </template>
 <script setup>
 import { computed, h, onMounted, ref } from 'vue'
-import { NTag, useMessage } from 'naive-ui'
+import { NTag } from 'naive-ui'
 import { apiWalletSummary, apiWalletLedger } from '../../../api/normal/wallet.js'
 import { apiCommerceOrderPage } from '../../../api/normal/commerce_order.js'
 import { apiCommerceCdkRedeem } from '../../../api/normal/commerce_cdk.js'
 
-const message = useMessage()
+const message = window.$message
 const wallet = ref({})
 const ledgers = ref([])
 const orders = ref([])

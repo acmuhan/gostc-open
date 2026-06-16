@@ -25,10 +25,10 @@
 </template>
 <script setup>
 import { computed, h, onMounted, ref } from 'vue'
-import { NButton, NTag, useMessage } from 'naive-ui'
+import { NButton, NTag } from 'naive-ui'
 import { apiAdminCommerceCdkCreate, apiAdminCommerceCdkDisable, apiAdminCommerceCdkPage } from '../../../api/admin/commerce_cdk.js'
 
-const message = useMessage()
+const message = window.$message
 const form = ref({ type: 'balance', value: 10, count: 1 })
 const typeOptions = [{ label: '余额', value: 'balance' }, { label: '积分', value: 'points' }]
 const codes = ref([])

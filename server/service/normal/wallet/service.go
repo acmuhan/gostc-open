@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/shopspring/decimal"
 	"server/pkg/jwt"
 	"server/repository"
 	"server/service/common/commerce"
@@ -10,6 +11,13 @@ type service struct{}
 
 var Service *service
 
+type WalletSummary struct {
+	Balance       decimal.Decimal `json:"balance"`
+	Points        decimal.Decimal `json:"points"`
+	FrozenBalance decimal.Decimal `json:"frozenBalance"`
+	Amount        decimal.Decimal `json:"amount"`
+}
+
 type LedgerReq struct {
 	Page int `json:"page"`
 	Size int `json:"size"`
@@ -18,7 +26,15 @@ type LedgerReq struct {
 func (s *service) Summary(claims jwt.Claims) any {
 	db, _, _ := repository.Get("")
 	user, _ := db.SystemUser.Where(db.SystemUser.Code.Eq(claims.Code)).First()
-	return user
+	if user == nil {
+		return WalletSummary{}
+	}
+	return WalletSummary{
+		Balance:       user.Balance,
+		Points:        user.Points,
+		FrozenBalance: user.FrozenBalance,
+		Amount:        user.Amount,
+	}
 }
 
 func (s *service) Ledger(claims jwt.Claims, req LedgerReq) (any, int64) {

@@ -43,7 +43,12 @@ type UpdateRemarkReq struct {
 	Remark string   `json:"remark"`
 }
 
-func (s *service) Create(req CreateReq) ([]string, error) {
+type CreateResp struct {
+	Codes   []string `json:"codes"`
+	BatchNo string   `json:"batchNo"`
+}
+
+func (s *service) Create(req CreateReq) (*CreateResp, error) {
 	if req.Count <= 0 {
 		req.Count = 1
 	}
@@ -67,7 +72,7 @@ func (s *service) Create(req CreateReq) ([]string, error) {
 		}
 		codes = append(codes, code)
 	}
-	return codes, nil
+	return &CreateResp{Codes: codes, BatchNo: batch}, nil
 }
 
 func (s *service) Page(req PageReq) (any, int64) {

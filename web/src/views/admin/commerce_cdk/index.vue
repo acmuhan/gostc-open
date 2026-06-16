@@ -19,6 +19,10 @@
         </n-form-item>
       </n-form>
       <template v-if="codes.length">
+        <n-alert v-if="lastBatchNo" type="success" style="margin-bottom:8px">
+          批次号：<n-text code>{{ lastBatchNo }}</n-text>
+          <n-button size="tiny" quaternary style="margin-left:8px" @click="filterByBatch">按此批次筛选列表</n-button>
+        </n-alert>
         <n-input type="textarea" :value="codes.join('\n')" :autosize="{minRows:3,maxRows:8}" readonly />
         <n-space style="margin-top:8px">
           <n-button size="small" @click="copyCodes">复制全部</n-button>
@@ -57,7 +61,7 @@
 </template>
 <script setup>
 import { computed, h, onMounted, ref } from 'vue'
-import { NButton, NTag } from 'naive-ui'
+import { NButton, NTag, NText, NAlert } from 'naive-ui'
 import {
   apiAdminCommerceCdkCreate, apiAdminCommerceCdkPage, apiAdminCommerceCdkDisable,
   apiAdminCommerceCdkBatchDisable, apiAdminCommerceCdkBatchEnable,
@@ -75,6 +79,7 @@ const statusFilterOptions = [
   { label: '已禁用', value: 3 },
 ]
 const codes = ref([])
+const lastBatchNo = ref('')
 const list = ref([])
 const page = ref(1)
 const total = ref(0)
@@ -107,7 +112,7 @@ function exportCodes() {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `cdk_${Date.now()}.txt`
+  a.download = `cdk_${lastBatchNo.value || Date.now()}.txt`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -116,7 +121,8 @@ async function create() {
   creating.value = true
   try {
     const res = await apiAdminCommerceCdkCreate(form.value)
-    codes.value = res.data || []
+    codes.value = res.data?.codes || []
+    lastBatchNo.value = res.data?.batchNo || ''
     message.success('生成成功')
     page.value = 1
     await load()
@@ -139,6 +145,12 @@ async function load() {
 }
 
 function resetAndLoad() { page.value = 1; load() }
+
+function filterByBatch() {
+  filter.value.batchNo = lastBatchNo.value
+  filter.value.status = null
+  resetAndLoad()
+}
 
 async function disable(code) {
   try {

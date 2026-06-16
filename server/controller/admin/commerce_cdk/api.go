@@ -14,12 +14,12 @@ func Create(c *gin.Context) {
 		bean.Response.Param(c, err)
 		return
 	}
-	codes, err := svr.Create(req)
+	resp, err := svr.Create(req)
 	if err != nil {
 		bean.Response.Fail(c, err.Error())
 		return
 	}
-	bean.Response.OkData(c, codes)
+	bean.Response.OkData(c, resp)
 }
 
 func Page(c *gin.Context) {

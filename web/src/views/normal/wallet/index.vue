@@ -1,9 +1,7 @@
 <template>
   <div class="commerce-page">
-    <n-grid :cols="3" :x-gap="16" :y-gap="16" responsive="screen">
-      <n-grid-item><n-card><div class="metric-label">账户余额</div><div class="metric-value">{{ money(wallet?.balance) }}</div></n-card></n-grid-item>
-      <n-grid-item><n-card><div class="metric-label">积分</div><div class="metric-value">{{ money(wallet?.points) }}</div></n-card></n-grid-item>
-      <n-grid-item><n-card><div class="metric-label">冻结余额</div><div class="metric-value">{{ money(wallet?.frozenBalance) }}</div></n-card></n-grid-item>
+    <n-grid :cols="1" :x-gap="16" :y-gap="16" responsive="screen">
+      <n-grid-item><n-card><div class="metric-label">积分</div><div class="metric-value">{{ money(wallet?.amount) }}</div></n-card></n-grid-item>
     </n-grid>
     <n-card class="panel" title="CDK 兑换">
       <n-space>

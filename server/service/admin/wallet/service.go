@@ -14,10 +14,9 @@ type service struct{}
 var Service *service
 
 type AdjustReq struct {
-	UserCode    string          `binding:"required" json:"userCode"`
-	AccountType string          `json:"accountType"`
-	Amount      decimal.Decimal `binding:"required" json:"amount"`
-	Remark      string          `json:"remark"`
+	UserCode string          `binding:"required" json:"userCode"`
+	Amount   decimal.Decimal `binding:"required" json:"amount"`
+	Remark   string          `json:"remark"`
 }
 
 func (s *service) Adjust(req AdjustReq) error {
@@ -27,16 +26,9 @@ func (s *service) Adjust(req AdjustReq) error {
 		if u == nil {
 			return errors.New("用户不存在")
 		}
-		account := req.AccountType
-		if account == "" {
-			account = model.WALLET_ACCOUNT_BALANCE
-		}
-		if account != model.WALLET_ACCOUNT_BALANCE && account != model.WALLET_ACCOUNT_POINTS {
-			return errors.New("账户类型错误")
-		}
 		if req.Amount.IsZero() {
-			return errors.New("调整金额不能为0")
+			return errors.New("调整积分不能为0")
 		}
-		return commerce.AdjustWallet(tx, u, account, req.Amount, model.WALLET_BIZ_ADMIN_ADJUST, "", req.Remark)
+		return commerce.AdjustWallet(tx, u, req.Amount, model.WALLET_BIZ_ADMIN_ADJUST, "", req.Remark)
 	})
 }

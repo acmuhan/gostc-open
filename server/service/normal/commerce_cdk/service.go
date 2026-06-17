@@ -45,11 +45,7 @@ func (s *service) Redeem(claims jwt.Claims, req RedeemReq) error {
 		if res.RowsAffected == 0 {
 			return errors.New("兑换码不可用")
 		}
-		account := model.WALLET_ACCOUNT_BALANCE
-		if cdk.Type == model.CDK_TYPE_POINTS {
-			account = model.WALLET_ACCOUNT_POINTS
-		}
-		if err := commerce.AdjustWallet(tx, user, account, cdk.Value, model.WALLET_BIZ_CDK_REDEEM, cdk.Code, "CDK兑换"); err != nil {
+		if err := commerce.AdjustWallet(tx, user, cdk.Value, model.WALLET_BIZ_CDK_REDEEM, cdk.Code, "CDK兑换"); err != nil {
 			return err
 		}
 		return gdb.Create(&model.CommerceCdkRedeem{CdkCode: cdk.Code, UserCode: user.Code}).Error

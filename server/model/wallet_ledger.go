@@ -6,8 +6,7 @@ const (
 	WALLET_DIRECTION_IN  = 1
 	WALLET_DIRECTION_OUT = 2
 
-	WALLET_ACCOUNT_BALANCE = "balance"
-	WALLET_ACCOUNT_POINTS  = "points"
+	WALLET_ACCOUNT_AMOUNT = "amount"
 
 	WALLET_BIZ_RECHARGE     = "recharge"
 	WALLET_BIZ_CONSUME      = "consume"

@@ -12,10 +12,7 @@ type service struct{}
 var Service *service
 
 type WalletSummary struct {
-	Balance       decimal.Decimal `json:"balance"`
-	Points        decimal.Decimal `json:"points"`
-	FrozenBalance decimal.Decimal `json:"frozenBalance"`
-	Amount        decimal.Decimal `json:"amount"`
+	Amount decimal.Decimal `json:"amount"`
 }
 
 type LedgerReq struct {
@@ -30,10 +27,7 @@ func (s *service) Summary(claims jwt.Claims) any {
 		return WalletSummary{}
 	}
 	return WalletSummary{
-		Balance:       user.Balance,
-		Points:        user.Points,
-		FrozenBalance: user.FrozenBalance,
-		Amount:        user.Amount,
+		Amount: user.Amount,
 	}
 }
 

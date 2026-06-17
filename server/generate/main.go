@@ -34,6 +34,7 @@ func main() {
 		model.SystemUserCheckin{},
 		model.SystemUserEmail{},
 		model.FrpClientCfg{},
+		model.SystemAuditLog{},
 	)
 	g.Execute()
 }

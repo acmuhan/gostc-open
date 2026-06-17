@@ -48,7 +48,15 @@ func RenewExpAt(current int64, cycle int) int64 {
 
 func PayPackage(tx *query.Query, user *model.SystemUser, amount decimal.Decimal, bizType string, bizCode string, snapshot model.Map, remark string) (*model.CommerceOrder, error) {
 	db := tx.UnderlyingDB()
-	order := &model.CommerceOrder{OrderNo: NewOrderNo("O"), UserCode: user.Code, BizType: bizType, BizCode: bizCode, PayType: model.ORDER_PAY_BALANCE, Amount: amount, Status: model.ORDER_STATUS_PENDING, Snapshot: snapshot, Remark: remark}
+	// 幂等：同一业务类型+业务编号只能有一笔已支付订单
+	if bizCode != "" {
+		var count int64
+		db.Table("commerce_order").Where("biz_type = ? AND biz_code = ? AND status = ?", bizType, bizCode, model.ORDER_STATUS_PAID).Count(&count)
+		if count > 0 {
+			return nil, errors.New("该订单已支付，请勿重复操作")
+		}
+	}
+	order := &model.CommerceOrder{OrderNo: NewOrderNo("O"), UserCode: user.Code, BizType: bizType, BizCode: bizCode, PayType: model.ORDER_PAY_AMOUNT, Amount: amount, Status: model.ORDER_STATUS_PENDING, Snapshot: snapshot, Remark: remark}
 	if amount.LessThanOrEqual(decimal.Zero) {
 		order.PayType = model.ORDER_PAY_FREE
 		order.Status = model.ORDER_STATUS_PAID

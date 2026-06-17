@@ -72,6 +72,7 @@ func InitPersistence() {
 		&model.CommerceOrder{},
 		&model.CommerceCdk{},
 		&model.CommerceCdkRedeem{},
+		&model.SystemAuditLog{},
 	); err != nil {
 		global.Logger.Fatal("init table struct fail", zap.Error(err))
 		Release()

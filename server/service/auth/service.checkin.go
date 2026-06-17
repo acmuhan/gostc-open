@@ -10,6 +10,7 @@ import (
 	"server/repository"
 	"server/repository/cache"
 	"server/repository/query"
+	"server/service/common/commerce"
 	"time"
 )
 
@@ -36,9 +37,8 @@ func (service *service) Checkin(claims jwt.Claims) (err error) {
 		}
 
 		amount := decimal.NewFromInt(int64(utils.RandNum(cfg.CheckInEnd-cfg.CheckInStart) + cfg.CheckInStart))
-		user.Amount = user.Amount.Add(amount)
-		if err := tx.SystemUser.Save(user); err != nil {
-			log.Error("签到失败", zap.Error(err))
+		if err := commerce.AdjustWallet(tx, user, amount, model.WALLET_BIZ_CHECKIN, "", "签到奖励"); err != nil {
+			log.Error("签到扣款失败", zap.Error(err))
 			return errors.New("签到失败")
 		}
 		if err := tx.SystemUserCheckin.Create(&model.SystemUserCheckin{
@@ -47,7 +47,7 @@ func (service *service) Checkin(claims jwt.Claims) (err error) {
 			EventDate: time.Now().Format(time.DateOnly),
 			Amount:    amount,
 		}); err != nil {
-			log.Error("签到失败", zap.Error(err))
+			log.Error("签到记录失败", zap.Error(err))
 			return errors.New("签到失败")
 		}
 		return nil

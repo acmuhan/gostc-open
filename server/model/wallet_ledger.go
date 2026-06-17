@@ -14,6 +14,7 @@ const (
 	WALLET_BIZ_ADMIN_ADJUST = "admin_adjust"
 	WALLET_BIZ_CDK_REDEEM   = "cdk_redeem"
 	WALLET_BIZ_ORDER_PAY    = "order_pay"
+	WALLET_BIZ_CHECKIN      = "checkin"
 )
 
 type WalletLedger struct {

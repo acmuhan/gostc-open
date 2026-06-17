@@ -10,6 +10,7 @@ import (
 	"server/pkg/rpc_protocol/websocket"
 	"server/router/admin"
 	"server/router/auth"
+	routerMw "server/router/middleware"
 	"server/router/normal"
 	"server/router/open"
 	"server/router/public"
@@ -38,6 +39,7 @@ func init() {
 		_ = InitStatic(engine)
 
 		adminGroup := engine.Group("api/v1/admin")
+		adminGroup.Use(routerMw.AuditLog())
 		admin.InitGostClient(adminGroup)
 		admin.InitGostClientForward(adminGroup)
 		admin.InitGostClientHost(adminGroup)
@@ -54,6 +56,8 @@ func init() {
 		admin.InitDashboard(adminGroup)
 		admin.InitWallet(adminGroup)
 		admin.InitCommerceCdk(adminGroup)
+		admin.InitCommerceOrder(adminGroup)
+		admin.InitSystemAuditLog(adminGroup)
 
 		publicGroup := engine.Group("api/v1/public")
 		public.InitSystemConfig(publicGroup)

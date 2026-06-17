@@ -16,7 +16,6 @@ type service struct{}
 var Service *service
 
 type CreateReq struct {
-	Type      string          `binding:"required" json:"type"`
 	Value     decimal.Decimal `binding:"required" json:"value"`
 	Count     int             `json:"count"`
 	ExpiredAt int64           `json:"expiredAt"`
@@ -55,9 +54,6 @@ func (s *service) Create(req CreateReq) (*CreateResp, error) {
 	if req.Count > 500 {
 		return nil, errors.New("单次最多生成500个")
 	}
-	if req.Type != model.CDK_TYPE_BALANCE && req.Type != model.CDK_TYPE_POINTS {
-		return nil, errors.New("类型错误")
-	}
 	if req.Value.LessThanOrEqual(decimal.Zero) {
 		return nil, errors.New("面值必须大于0")
 	}
@@ -66,7 +62,7 @@ func (s *service) Create(req CreateReq) (*CreateResp, error) {
 	codes := make([]string, 0, req.Count)
 	for i := 0; i < req.Count; i++ {
 		code := utils.RandStrPrefix(18, "CDK", utils.AllDict)
-		cdk := model.CommerceCdk{Code: code, Type: req.Type, Value: req.Value, Status: model.CDK_STATUS_UNUSED, BatchNo: batch, ExpiredAt: req.ExpiredAt, Remark: req.Remark}
+		cdk := model.CommerceCdk{Code: code, Type: model.CDK_TYPE_AMOUNT, Value: req.Value, Status: model.CDK_STATUS_UNUSED, BatchNo: batch, ExpiredAt: req.ExpiredAt, Remark: req.Remark}
 		if err := commerce.DB(db).Create(&cdk).Error; err != nil {
 			return nil, err
 		}

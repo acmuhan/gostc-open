@@ -3,8 +3,7 @@ package model
 import "github.com/shopspring/decimal"
 
 const (
-	CDK_TYPE_BALANCE = "balance"
-	CDK_TYPE_POINTS  = "points"
+	CDK_TYPE_AMOUNT = "amount"
 
 	CDK_STATUS_UNUSED   = 1
 	CDK_STATUS_USED     = 2

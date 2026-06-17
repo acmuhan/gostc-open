@@ -68,8 +68,7 @@ import {
 const message = window.$message
 const dialog = window.$dialog
 
-const form = ref({ type: 'balance', value: 10, count: 1, remark: '' })
-const typeOptions = []
+const form = ref({ value: 10, count: 1, remark: '' })
 const statusFilterOptions = [
   { label: '未使用', value: 1 },
   { label: '已使用', value: 2 },

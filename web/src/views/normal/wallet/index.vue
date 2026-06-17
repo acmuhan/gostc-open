@@ -9,7 +9,7 @@
         <n-button type="primary" :loading="redeemLoading" @click="redeem">兑换</n-button>
       </n-space>
     </n-card>
-    <n-card class="panel" title="资金流水">
+    <n-card class="panel" title="积分流水">
       <n-data-table :columns="ledgerColumns" :data="ledgers" :loading="loading" />
       <n-pagination class="pager" v-model:page="page" :page-count="pageCount" @update:page="loadLedger" />
     </n-card>
@@ -40,17 +40,16 @@ const money = v => Number(v || 0).toFixed(2)
 
 const ledgerColumns = [
   { title: '时间', key: 'created_at' },
-  { title: '账户', key: 'account_type' },
-  { title: '类型', key: 'biz_type' },
-  { title: '金额', key: 'amount', render: r => h('span', { class: r.direction === 2 ? 'out' : 'in' }, `${r.direction === 2 ? '-' : '+'}${money(r.amount)}`) },
-  { title: '余额变化', key: 'balance_after', render: r => `${money(r.balance_before)} → ${money(r.balance_after)}` },
+  { title: '类型', key: 'biz_type', render: r => ({ recharge: '充值', consume: '消费', refund: '退款', admin_adjust: '管理员调整', cdk_redeem: 'CDK兑换', order_pay: '订单支付' }[r.biz_type] || r.biz_type) },
+  { title: '积分', key: 'amount', render: r => h('span', { class: r.direction === 2 ? 'out' : 'in' }, `${r.direction === 2 ? '-' : '+'}${money(r.amount)}`) },
+  { title: '变化', key: 'balance_after', render: r => `${money(r.balance_before)} → ${money(r.balance_after)}` },
   { title: '备注', key: 'remark' },
 ]
 const orderColumns = [
   { title: '订单号', key: 'order_no' },
   { title: '业务', key: 'biz_type' },
-  { title: '支付', key: 'pay_type' },
-  { title: '金额', key: 'amount', render: r => money(r.amount) },
+  { title: '支付', key: 'pay_type', render: r => ({ amount: '积分', free: '免费', admin: '管理员' }[r.pay_type] || r.pay_type) },
+  { title: '积分', key: 'amount', render: r => money(r.amount) },
   { title: '状态', key: 'status', render: r => h(NTag, { type: r.status === 2 ? 'success' : 'default' }, () => r.status === 2 ? '已支付' : '待处理') },
   { title: '时间', key: 'created_at' },
 ]

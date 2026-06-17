@@ -8,10 +8,9 @@ const (
 	ORDER_STATUS_CLOSED   = 3
 	ORDER_STATUS_REFUNDED = 4
 
-	ORDER_PAY_BALANCE = "balance"
-	ORDER_PAY_POINTS  = "points"
-	ORDER_PAY_FREE    = "free"
-	ORDER_PAY_ADMIN   = "admin"
+	ORDER_PAY_AMOUNT = "amount"
+	ORDER_PAY_FREE   = "free"
+	ORDER_PAY_ADMIN  = "admin"
 
 	ORDER_BIZ_TUNNEL_CREATE  = "tunnel_create"
 	ORDER_BIZ_TUNNEL_RENEW   = "tunnel_renew"
@@ -36,7 +35,6 @@ type CommerceOrder struct {
 	BizCode  string          `gorm:"column:biz_code;size:100;index;comment:业务编号" json:"bizCode"`
 	PayType  string          `gorm:"column:pay_type;size:32;index;comment:支付方式" json:"payType"`
 	Amount   decimal.Decimal `gorm:"column:amount;default:0;comment:订单金额" json:"amount"`
-	Points   decimal.Decimal `gorm:"column:points;default:0;comment:积分金额" json:"points"`
 	Status   int             `gorm:"column:status;size:1;default:1;index;comment:订单状态" json:"status"`
 	Snapshot Map             `gorm:"column:snapshot;type:text;comment:业务快照" json:"snapshot"`
 	PaidAt   int64           `gorm:"column:paid_at;index;comment:支付时间" json:"paidAt"`

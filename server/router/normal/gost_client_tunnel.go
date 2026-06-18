@@ -16,4 +16,5 @@ func InitGostClientTunnel(group *gin.RouterGroup) {
 	g.POST("enable", gost_client_tunnel.Enable)
 	g.POST("delete", gost_client_tunnel.Delete)
 	g.POST("page", gost_client_tunnel.Page)
+	g.POST("auto-renew", gost_client_tunnel.AutoRenew)
 }

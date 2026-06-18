@@ -4,6 +4,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const (
+	AUTO_RENEW_ENABLE  = 1 // 启用自动续费
+	AUTO_RENEW_DISABLE = 2 // 禁用自动续费
+)
+
 type GostClientConfig struct {
 	ChargingType int             `gorm:"column:charging_type;default:1;index;comment:计费方式"`
 	Cycle        int             `gorm:"column:cycle;default:0;comment:计费周期(天)"`
@@ -12,4 +17,5 @@ type GostClientConfig struct {
 	RLimiter     int             `gorm:"column:r_limiter;comment:并发数量限制"`
 	CLimiter     int             `gorm:"column:c_limiter;comment:连接数量限制"`
 	ExpAt        int64           `gorm:"column:exp_at;index;comment:套餐到期时间"`
+	AutoRenew    int             `gorm:"column:auto_renew;size:1;default:2;comment:自动续费" json:"autoRenew"`
 }

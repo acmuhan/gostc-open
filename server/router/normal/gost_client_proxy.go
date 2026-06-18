@@ -15,4 +15,5 @@ func InitGostClientProxy(group *gin.RouterGroup) {
 	g.POST("enable", gost_client_proxy.Enable)
 	g.POST("delete", gost_client_proxy.Delete)
 	g.POST("page", gost_client_proxy.Page)
+	g.POST("auto-renew", gost_client_proxy.AutoRenew)
 }

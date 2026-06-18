@@ -18,4 +18,5 @@ func InitGostClientForward(group *gin.RouterGroup) {
 	g.POST("enable", gost_client_forward.Enable)
 	g.POST("delete", gost_client_forward.Delete)
 	g.POST("page", gost_client_forward.Page)
+	g.POST("auto-renew", gost_client_forward.AutoRenew)
 }

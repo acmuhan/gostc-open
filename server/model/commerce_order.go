@@ -24,6 +24,12 @@ const (
 	ORDER_BIZ_P2P_RENEW      = "p2p_renew"
 	ORDER_BIZ_CDK_REDEEM     = "cdk_redeem"
 	ORDER_BIZ_ADMIN_ADJUST   = "admin_adjust"
+
+	ORDER_BIZ_AUTO_RENEW_TUNNEL  = "auto_renew_tunnel"
+	ORDER_BIZ_AUTO_RENEW_HOST    = "auto_renew_host"
+	ORDER_BIZ_AUTO_RENEW_FORWARD = "auto_renew_forward"
+	ORDER_BIZ_AUTO_RENEW_PROXY   = "auto_renew_proxy"
+	ORDER_BIZ_AUTO_RENEW_P2P     = "auto_renew_p2p"
 )
 
 type CommerceOrder struct {

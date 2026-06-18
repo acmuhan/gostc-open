@@ -16,4 +16,5 @@ func InitGostClientP2P(group *gin.RouterGroup) {
 	g.POST("enable", gost_client_p2p.Enable)
 	g.POST("delete", gost_client_p2p.Delete)
 	g.POST("page", gost_client_p2p.Page)
+	g.POST("auto-renew", gost_client_p2p.AutoRenew)
 }

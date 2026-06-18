@@ -83,3 +83,16 @@ func Page(c *gin.Context) {
 	list, total := svr.Page(middleware.GetClaims(c), req)
 	bean.Response.OkData(c, bean.NewPage(list, total))
 }
+
+func AutoRenew(c *gin.Context) {
+	var req service.AutoRenewReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		bean.Response.Param(c, err)
+		return
+	}
+	if err := svr.AutoRenew(middleware.GetClaims(c), req); err != nil {
+		bean.Response.Fail(c, err.Error())
+		return
+	}
+	bean.Response.Ok(c)
+}

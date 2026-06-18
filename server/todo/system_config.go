@@ -46,6 +46,18 @@ func systemConfig() {
 		_ = db.SystemConfig.Create(item)
 	}
 
+	for _, item := range model.GenerateSystemConfigPay(
+		"2",
+		"v1",
+		"",
+		"",
+		"",
+		"",
+		"",
+	) {
+		_ = db.SystemConfig.Create(item)
+	}
+
 	configs, _ := db.SystemConfig.Find()
 	baseConfig := model.GetSystemConfigBase(configs)
 	cache.SetSystemConfigBase(baseConfig)
@@ -53,4 +65,6 @@ func systemConfig() {
 	cache.SetSystemConfigGost(gostConfig)
 	emailConfig := model.GetSystemConfigEmail(configs)
 	cache.SetSystemConfigEmail(emailConfig)
+	payConfig := model.GetSystemConfigPay(configs)
+	cache.SetSystemConfigPay(payConfig)
 }

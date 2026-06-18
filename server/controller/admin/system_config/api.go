@@ -68,3 +68,16 @@ func Query(c *gin.Context) {
 	}
 	bean.Response.OkData(c, svr.Query(req))
 }
+
+func Pay(c *gin.Context) {
+	var req service.PayReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		bean.Response.Param(c, err)
+		return
+	}
+	if err := svr.Pay(req); err != nil {
+		bean.Response.Fail(c, err.Error())
+		return
+	}
+	bean.Response.Ok(c)
+}

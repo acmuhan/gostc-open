@@ -63,6 +63,7 @@ func init() {
 		public.InitSystemConfig(publicGroup)
 		public.InitFrp(publicGroup)
 		public.InitGost(publicGroup)
+		public.InitPay(publicGroup)
 
 		authGroup := engine.Group("api/v1/auth")
 		auth.InitAuth(authGroup)
@@ -83,6 +84,7 @@ func init() {
 		normal.InitWallet(normalGroup)
 		normal.InitCommerceOrder(normalGroup)
 		normal.InitCommerceCdk(normalGroup)
+		normal.InitPay(normalGroup)
 
 		openGroup := engine.Group("api/v1/open")
 		open.InitAuth(openGroup.Group("auth"))

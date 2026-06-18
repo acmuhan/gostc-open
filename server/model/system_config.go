@@ -10,6 +10,7 @@ const (
 	SYSTEM_CONFIG_KIND_BASE  = "SystemConfigBase"  // 基础配置
 	SYSTEM_CONFIG_KIND_GOST  = "SystemConfigGost"  // Gost配置
 	SYSTEM_CONFIG_KIND_EMAIL = "SystemConfigEmail" // 邮件配置
+	SYSTEM_CONFIG_KIND_PAY   = "SystemConfigPay"   // 支付配置
 )
 
 type SystemConfig struct {
@@ -190,6 +191,53 @@ func GetSystemConfigEmail(list []*SystemConfig) (result SystemConfigEmail) {
 			result.Pwd = item.Value
 		case "resetPwdTpl":
 			result.ResetPwdTpl = item.Value
+		}
+	}
+	return result
+}
+
+type SystemConfigPay struct {
+	Enable     string `json:"enable"`     // 是否启用支付 1=启用 2=禁用
+	ApiVersion string `json:"apiVersion"` // API版本 v1 或 v2
+	ApiUrl     string `json:"apiUrl"`     // 易支付网关地址
+	Pid        string `json:"pid"`        // 商户ID
+	Key        string `json:"key"`        // 商户密钥(V1 MD5)
+	PrivateKey string `json:"privateKey"` // 商户私钥(V2 RSA)
+	PublicKey  string `json:"publicKey"`  // 平台公钥(V2 RSA)
+}
+
+func GenerateSystemConfigPay(enable, apiVersion, apiUrl, pid, key, privateKey, publicKey string) []*SystemConfig {
+	return []*SystemConfig{
+		{Kind: SYSTEM_CONFIG_KIND_PAY, Key: "enable", Value: enable},
+		{Kind: SYSTEM_CONFIG_KIND_PAY, Key: "apiVersion", Value: apiVersion},
+		{Kind: SYSTEM_CONFIG_KIND_PAY, Key: "apiUrl", Value: apiUrl},
+		{Kind: SYSTEM_CONFIG_KIND_PAY, Key: "pid", Value: pid},
+		{Kind: SYSTEM_CONFIG_KIND_PAY, Key: "key", Value: key},
+		{Kind: SYSTEM_CONFIG_KIND_PAY, Key: "privateKey", Value: privateKey},
+		{Kind: SYSTEM_CONFIG_KIND_PAY, Key: "publicKey", Value: publicKey},
+	}
+}
+
+func GetSystemConfigPay(list []*SystemConfig) (result SystemConfigPay) {
+	for _, item := range list {
+		if item.Kind != SYSTEM_CONFIG_KIND_PAY {
+			continue
+		}
+		switch item.Key {
+		case "enable":
+			result.Enable = item.Value
+		case "apiVersion":
+			result.ApiVersion = item.Value
+		case "apiUrl":
+			result.ApiUrl = item.Value
+		case "pid":
+			result.Pid = item.Value
+		case "key":
+			result.Key = item.Value
+		case "privateKey":
+			result.PrivateKey = item.Value
+		case "publicKey":
+			result.PublicKey = item.Value
 		}
 	}
 	return result

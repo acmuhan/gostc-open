@@ -9,6 +9,13 @@
         <n-button type="primary" :loading="redeemLoading" @click="redeem">兑换</n-button>
       </n-space>
     </n-card>
+    <n-card class="panel" title="积分充值">
+      <n-space>
+        <n-input-number v-model:value="rechargeAmount" :min="0.01" :precision="2" placeholder="充值金额" style="width:160px" />
+        <n-select v-model:value="rechargePayType" :options="payTypeOptions" placeholder="支付方式" style="width:130px" />
+        <n-button type="primary" :loading="rechargeLoading" @click="recharge">充值</n-button>
+      </n-space>
+    </n-card>
     <n-card class="panel" title="积分流水">
       <n-data-table :columns="ledgerColumns" :data="ledgers" :loading="loading" />
       <n-pagination class="pager" v-model:page="page" :page-count="pageCount" @update:page="loadLedger" />
@@ -24,6 +31,7 @@ import { NTag } from 'naive-ui'
 import { apiWalletSummary, apiWalletLedger } from '../../../api/normal/wallet.js'
 import { apiCommerceOrderPage } from '../../../api/normal/commerce_order.js'
 import { apiCommerceCdkRedeem } from '../../../api/normal/commerce_cdk.js'
+import { apiNormalPayRecharge } from '../../../api/normal/pay.js'
 
 const message = window.$message
 const wallet = ref({})
@@ -35,22 +43,30 @@ const loading = ref(false)
 const orderLoading = ref(false)
 const redeemLoading = ref(false)
 const cdk = ref('')
+const rechargeAmount = ref(10)
+const rechargePayType = ref('alipay')
+const rechargeLoading = ref(false)
+const payTypeOptions = [
+  { label: '支付宝', value: 'alipay' },
+  { label: '微信支付', value: 'wxpay' },
+  { label: 'QQ钱包', value: 'qqpay' },
+]
 const pageCount = computed(() => Math.max(1, Math.ceil(total.value / 10)))
 const money = v => Number(v || 0).toFixed(2)
 
 const ledgerColumns = [
   { title: '时间', key: 'created_at' },
-  { title: '类型', key: 'biz_type', render: r => ({ recharge: '充值', consume: '消费', refund: '退款', admin_adjust: '管理员调整', cdk_redeem: 'CDK兑换', order_pay: '订单支付' }[r.biz_type] || r.biz_type) },
+  { title: '类型', key: 'biz_type', render: r => ({ recharge: '充值', consume: '消费', refund: '退款', admin_adjust: '管理员调整', cdk_redeem: 'CDK兑换', order_pay: '订单支付', checkin: '签到' }[r.biz_type] || r.biz_type) },
   { title: '积分', key: 'amount', render: r => h('span', { class: r.direction === 2 ? 'out' : 'in' }, `${r.direction === 2 ? '-' : '+'}${money(r.amount)}`) },
   { title: '变化', key: 'balance_after', render: r => `${money(r.balance_before)} → ${money(r.balance_after)}` },
   { title: '备注', key: 'remark' },
 ]
 const orderColumns = [
   { title: '订单号', key: 'order_no' },
-  { title: '业务', key: 'biz_type' },
-  { title: '支付', key: 'pay_type', render: r => ({ amount: '积分', free: '免费', admin: '管理员' }[r.pay_type] || r.pay_type) },
+  { title: '业务', key: 'biz_type', render: r => ({ recharge: '充值', tunnel_create: '隧道开通', tunnel_renew: '隧道续费', host_create: '域名开通', host_renew: '域名续费', forward_create: '转发开通', forward_renew: '转发续费', proxy_create: '代理开通', proxy_renew: '代理续费', p2p_create: 'P2P开通', p2p_renew: 'P2P续费', cdk_redeem: 'CDK兑换', admin_adjust: '管理员调整', auto_renew_tunnel: '自动续费', auto_renew_host: '自动续费', auto_renew_forward: '自动续费', auto_renew_proxy: '自动续费', auto_renew_p2p: '自动续费' }[r.biz_type] || r.biz_type) },
+  { title: '支付', key: 'pay_type', render: r => ({ amount: '积分', free: '免费', admin: '管理员', alipay: '支付宝', wxpay: '微信', qqpay: 'QQ钱包' }[r.pay_type] || r.pay_type) },
   { title: '积分', key: 'amount', render: r => money(r.amount) },
-  { title: '状态', key: 'status', render: r => h(NTag, { type: r.status === 2 ? 'success' : 'default' }, () => r.status === 2 ? '已支付' : '待处理') },
+  { title: '状态', key: 'status', render: r => h(NTag, { type: { 1: 'warning', 2: 'success', 3: 'default', 4: 'error' }[r.status] || 'default' }, () => ({ 1: '待支付', 2: '已支付', 3: '已关闭', 4: '已退款' }[r.status] || '未知')) },
   { title: '时间', key: 'created_at' },
 ]
 
@@ -91,6 +107,18 @@ async function redeem() {
     await loadLedger()
   } catch (_) { /* 请求拦截器已处理错误提示 */ }
   redeemLoading.value = false
+}
+
+async function recharge() {
+  if (!rechargeAmount.value || rechargeAmount.value <= 0) { message.warning('请输入充值金额'); return }
+  rechargeLoading.value = true
+  try {
+    const res = await apiNormalPayRecharge({ amount: String(rechargeAmount.value), payType: rechargePayType.value })
+    if (res.data?.payUrl) {
+      window.open(res.data.payUrl, '_blank')
+    }
+  } catch (_) {}
+  rechargeLoading.value = false
 }
 
 onMounted(() => { loadWallet(); loadLedger(); loadOrders() })

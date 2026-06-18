@@ -34,6 +34,14 @@ export const apiAdminSystemConfigEmailVerify = (data) => {
     })
 }
 
+export const apiAdminSystemConfigPay = (data) => {
+    return request.request({
+        url: `${baseUrl}/pay`,
+        method: 'POST',
+        data
+    })
+}
+
 export const apiAdminSystemConfigQuery = (data) => {
     return request.request({
         url: `${baseUrl}/query`,

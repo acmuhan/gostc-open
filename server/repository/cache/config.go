@@ -10,6 +10,7 @@ const (
 	system_config_base_key  = "system:config:base"
 	system_config_gost_key  = "system:config:gost"
 	system_config_email_key = "system:config:email"
+	system_config_pay_key   = "system:config:pay"
 )
 
 func SetSystemConfigBase(cfg model.SystemConfigBase) {
@@ -34,4 +35,12 @@ func SetSystemConfigEmail(cfg model.SystemConfigEmail) {
 
 func GetSystemConfigEmail(cfg *model.SystemConfigEmail) {
 	_ = global.Cache.GetStruct(system_config_email_key, cfg)
+}
+
+func SetSystemConfigPay(cfg model.SystemConfigPay) {
+	global.Cache.SetStruct(system_config_pay_key, cfg, cache.NoExpiration)
+}
+
+func GetSystemConfigPay(cfg *model.SystemConfigPay) {
+	_ = global.Cache.GetStruct(system_config_pay_key, cfg)
 }

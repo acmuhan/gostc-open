@@ -12,6 +12,7 @@ func InitSystemConfig(group *gin.RouterGroup) {
 	g.POST("base", system_config.Base)
 	g.POST("gost", system_config.Gost)
 	g.POST("email", system_config.Email)
+	g.POST("pay", system_config.Pay)
 	g.POST("emailVerify", system_config.EmailVerify)
 	g.POST("query", system_config.Query)
 }

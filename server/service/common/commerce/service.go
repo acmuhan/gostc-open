@@ -114,3 +114,8 @@ func AdjustWallet(tx *query.Query, user *model.SystemUser, value decimal.Decimal
 }
 
 func DB(tx *query.Query) *gorm.DB { return tx.UnderlyingDB() }
+
+func ParseDecimal(s string) decimal.Decimal {
+	d, _ := decimal.NewFromString(s)
+	return d
+}

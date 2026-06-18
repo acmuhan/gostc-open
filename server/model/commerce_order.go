@@ -30,6 +30,7 @@ const (
 	ORDER_BIZ_AUTO_RENEW_FORWARD = "auto_renew_forward"
 	ORDER_BIZ_AUTO_RENEW_PROXY   = "auto_renew_proxy"
 	ORDER_BIZ_AUTO_RENEW_P2P     = "auto_renew_p2p"
+	ORDER_BIZ_RECHARGE           = "recharge"
 )
 
 type CommerceOrder struct {

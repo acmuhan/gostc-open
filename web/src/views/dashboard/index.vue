@@ -26,7 +26,7 @@ import {apiNormalGostObsUserMonth} from "../../api/normal/gost_obs.js";
 import {apiWalletSummary, apiWalletLedger} from '../../api/normal/wallet.js'
 import {apiCommerceOrderPage} from '../../api/normal/commerce_order.js'
 import {apiCommerceCdkRedeem} from '../../api/normal/commerce_cdk.js'
-import {apiNormalPayRecharge} from '../../api/normal/pay.js'
+import {apiNormalPayRecharge, apiNormalPayClose, apiNormalPayDetail, apiNormalPayRepay} from '../../api/normal/pay.js'
 import {
   apiNormalDashboardClientForwardObsDate,
   apiNormalDashboardClientHostObsDate,
@@ -124,12 +124,22 @@ const ledgerColumns = [
   { title: '备注', key: 'remark' },
 ]
 const orderColumns = [
-  { title: '订单号', key: 'order_no' },
-  { title: '业务', key: 'biz_type', render: r => ({ recharge: '充值', tunnel_create: '隧道开通', tunnel_renew: '隧道续费', host_create: '域名开通', host_renew: '域名续费', forward_create: '转发开通', forward_renew: '转发续费', proxy_create: '代理开通', proxy_renew: '代理续费', p2p_create: 'P2P开通', p2p_renew: 'P2P续费', cdk_redeem: 'CDK兑换', admin_adjust: '管理员调整', auto_renew_tunnel: '自动续费', auto_renew_host: '自动续费', auto_renew_forward: '自动续费', auto_renew_proxy: '自动续费', auto_renew_p2p: '自动续费' }[r.biz_type] || r.biz_type) },
-  { title: '支付', key: 'pay_type', render: r => ({ amount: '积分', free: '免费', admin: '管理员', alipay: '支付宝', wxpay: '微信', qqpay: 'QQ钱包' }[r.pay_type] || r.pay_type) },
-  { title: '积分', key: 'amount', render: r => money(r.amount) },
-  { title: '状态', key: 'status', render: r => h(NTag, { type: { 1: 'warning', 2: 'success', 3: 'default', 4: 'error' }[r.status] || 'default' }, () => ({ 1: '待支付', 2: '已支付', 3: '已关闭', 4: '已退款' }[r.status] || '未知')) },
-  { title: '时间', key: 'created_at' },
+  { title: '订单号', key: 'order_no', ellipsis: true, width: 180 },
+  { title: '业务', key: 'biz_type', width: 90, render: r => ({ recharge: '充值', tunnel_create: '隧道开通', tunnel_renew: '隧道续费', host_create: '域名开通', host_renew: '域名续费', forward_create: '转发开通', forward_renew: '转发续费', proxy_create: '代理开通', proxy_renew: '代理续费', p2p_create: 'P2P开通', p2p_renew: 'P2P续费', cdk_redeem: 'CDK兑换', admin_adjust: '管理员调整', auto_renew_tunnel: '自动续费', auto_renew_host: '自动续费', auto_renew_forward: '自动续费', auto_renew_proxy: '自动续费', auto_renew_p2p: '自动续费' }[r.biz_type] || r.biz_type) },
+  { title: '金额', key: 'amount', width: 70, render: r => money(r.amount) },
+  { title: '状态', key: 'status', width: 70, render: r => h(NTag, { type: { 1: 'warning', 2: 'success', 3: 'default', 4: 'error' }[r.status] || 'default', size: 'small' }, () => ({ 1: '待支付', 2: '已支付', 3: '已关闭', 4: '已退款' }[r.status] || '未知')) },
+  { title: '时间', key: 'created_at', width: 160 },
+  { title: '操作', key: 'action', width: 160, render: r => {
+    const btns = []
+    btns.push(h(NButton, { size: 'tiny', quaternary: true, type: 'info', onClick: () => showOrderDetail(r) }, () => '详情'))
+    if (r.status === 1 && r.biz_type === 'recharge') {
+      btns.push(h(NButton, { size: 'tiny', quaternary: true, type: 'success', onClick: () => repayOrder(r) }, () => '支付'))
+    }
+    if (r.status === 1) {
+      btns.push(h(NButton, { size: 'tiny', quaternary: true, type: 'error', onClick: () => closeOrder(r) }, () => '关闭'))
+    }
+    return h('div', { style: 'display:flex;gap:4px;flex-wrap:wrap' }, btns)
+  }},
 ]
 
 const cardStyleComputed = computed(() => {
@@ -467,6 +477,42 @@ async function recharge() {
     }
   } catch (_) {}
   rechargeLoading.value = false
+}
+
+const orderDetail = ref(null)
+const orderDetailOpen = ref(false)
+
+async function showOrderDetail(row) {
+  try {
+    const res = await apiNormalPayDetail({ orderNo: row.order_no })
+    if (res.code === 0) {
+      orderDetail.value = res.data
+      orderDetailOpen.value = true
+    }
+  } catch (_) {}
+}
+
+async function closeOrder(row) {
+  try {
+    const res = await apiNormalPayClose({ orderNo: row.order_no })
+    if (res.code === 0) {
+      $message.success('订单已关闭')
+      await loadOrders()
+    } else {
+      $message.error(res.msg || '关闭失败')
+    }
+  } catch (_) {}
+}
+
+async function repayOrder(row) {
+  try {
+    const res = await apiNormalPayRepay({ orderNo: row.order_no })
+    if (res.code === 0 && res.data?.payUrl) {
+      window.open(res.data.payUrl, '_blank')
+    } else {
+      $message.error(res.msg || '获取支付链接失败')
+    }
+  } catch (_) {}
 }
 
 onBeforeMount(() => {
@@ -814,7 +860,7 @@ const userInfoResize = (arg) => {
           <n-el tag="div" :style="cardStyleComputed">
             <AppCard :show-border="false">
               <n-h4 style="font-weight: bold">订单记录</n-h4>
-              <n-data-table size="small" :columns="orderColumns" :data="orders" :loading="orderLoading" />
+              <n-data-table size="small" :columns="orderColumns" :data="orders" :loading="orderLoading" :scroll-x="700" />
             </AppCard>
           </n-el>
         </n-grid-item>
@@ -894,6 +940,19 @@ const userInfoResize = (arg) => {
       </n-form>
       <n-alert type="info">绑定邮箱后，如果忘记密码可以通过邮箱重置密码</n-alert>
     </Modal>
+
+    <n-modal v-model:show="orderDetailOpen" preset="card" title="订单详情" style="max-width:500px;width:90%">
+      <n-descriptions v-if="orderDetail" :column="1" label-placement="left" bordered>
+        <n-descriptions-item label="订单号">{{ orderDetail.order_no }}</n-descriptions-item>
+        <n-descriptions-item label="业务类型">{{ ({ recharge: '充值', tunnel_create: '隧道开通', tunnel_renew: '隧道续费', host_create: '域名开通', host_renew: '域名续费', forward_create: '转发开通', forward_renew: '转发续费', proxy_create: '代理开通', proxy_renew: '代理续费', p2p_create: 'P2P开通', p2p_renew: 'P2P续费' }[orderDetail.biz_type] || orderDetail.biz_type) }}</n-descriptions-item>
+        <n-descriptions-item label="金额">{{ money(orderDetail.amount) }}</n-descriptions-item>
+        <n-descriptions-item label="支付方式">{{ ({ amount: '积分', free: '免费', admin: '管理员', alipay: '支付宝', wxpay: '微信', qqpay: 'QQ钱包' }[orderDetail.pay_type] || orderDetail.pay_type) }}</n-descriptions-item>
+        <n-descriptions-item label="状态">{{ ({ 1: '待支付', 2: '已支付', 3: '已关闭', 4: '已退款' }[orderDetail.status] || '未知') }}</n-descriptions-item>
+        <n-descriptions-item label="创建时间">{{ orderDetail.created_at }}</n-descriptions-item>
+        <n-descriptions-item v-if="orderDetail.paid_at" label="支付时间">{{ new Date(orderDetail.paid_at * 1000).toLocaleString() }}</n-descriptions-item>
+        <n-descriptions-item v-if="orderDetail.remark" label="备注">{{ orderDetail.remark }}</n-descriptions-item>
+      </n-descriptions>
+    </n-modal>
   </div>
 </template>
 

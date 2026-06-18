@@ -81,3 +81,88 @@ func (s *service) Recharge(claims jwt.Claims, req RechargeReq, clientIP string) 
 	}
 	return &RechargeResp{PayUrl: payUrl, TradeNo: orderNo}, nil
 }
+
+type CloseReq struct {
+	OrderNo string `binding:"required" json:"orderNo"`
+}
+
+func (s *service) Close(claims jwt.Claims, req CloseReq) error {
+	db, _, log := repository.Get("")
+	gdb := db.UnderlyingDB()
+	var order model.CommerceOrder
+	if err := gdb.Table("commerce_order").Where("order_no = ? AND user_code = ?", req.OrderNo, claims.Code).First(&order).Error; err != nil {
+		return errors.New("订单不存在")
+	}
+	if order.Status != model.ORDER_STATUS_PENDING {
+		return errors.New("该订单状态不可关闭")
+	}
+	if order.BizType == model.ORDER_BIZ_RECHARGE {
+		client, err := getEpayClient()
+		if err == nil {
+			_, closeErr := client.CloseOrder(req.OrderNo)
+			if closeErr != nil {
+				log.Warn("易支付关闭订单失败", zap.Error(closeErr))
+			}
+		}
+	}
+	if err := gdb.Table("commerce_order").Where("order_no = ?", req.OrderNo).Update("status", model.ORDER_STATUS_CLOSED).Error; err != nil {
+		log.Error("关闭订单失败", zap.Error(err))
+		return errors.New("关闭订单失败")
+	}
+	return nil
+}
+
+type DetailReq struct {
+	OrderNo string `binding:"required" json:"orderNo"`
+}
+
+func (s *service) Detail(claims jwt.Claims, req DetailReq) (map[string]any, error) {
+	db, _, _ := repository.Get("")
+	gdb := db.UnderlyingDB()
+	var order map[string]any
+	if err := gdb.Table("commerce_order").Where("order_no = ? AND user_code = ?", req.OrderNo, claims.Code).First(&order).Error; err != nil {
+		return nil, errors.New("订单不存在")
+	}
+	return order, nil
+}
+
+type RepayReq struct {
+	OrderNo string `binding:"required" json:"orderNo"`
+}
+
+func (s *service) Repay(claims jwt.Claims, req RepayReq, clientIP string) (*RechargeResp, error) {
+	db, _, _ := repository.Get("")
+	gdb := db.UnderlyingDB()
+	var order model.CommerceOrder
+	if err := gdb.Table("commerce_order").Where("order_no = ? AND user_code = ?", req.OrderNo, claims.Code).First(&order).Error; err != nil {
+		return nil, errors.New("订单不存在")
+	}
+	if order.Status != model.ORDER_STATUS_PENDING {
+		return nil, errors.New("该订单状态不可支付")
+	}
+	if order.BizType != model.ORDER_BIZ_RECHARGE {
+		return nil, errors.New("仅充值订单支持重新支付")
+	}
+	client, err := getEpayClient()
+	if err != nil {
+		return nil, err
+	}
+	var cfgBase model.SystemConfigBase
+	cache.GetSystemConfigBase(&cfgBase)
+	notifyUrl := cfgBase.BaseUrl + "/api/v1/public/pay/notify"
+	returnUrl := cfgBase.BaseUrl + "/dashboard"
+	payUrl, err := client.GetPayUrl(epay.CreateOrderReq{
+		OutTradeNo: order.OrderNo,
+		Type:       order.PayType,
+		Name:       "积分充值",
+		Money:      order.Amount.String(),
+		NotifyUrl:  notifyUrl,
+		ReturnUrl:  returnUrl,
+		ClientIP:   clientIP,
+		Param:      claims.Code,
+	})
+	if err != nil {
+		return nil, errors.New("创建支付链接失败")
+	}
+	return &RechargeResp{PayUrl: payUrl, TradeNo: order.OrderNo}, nil
+}

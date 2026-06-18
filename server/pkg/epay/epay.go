@@ -271,3 +271,102 @@ func (n NotifyParams) ToMap() map[string]string {
 	}
 	return m
 }
+
+type QueryOrderResp struct {
+	Code       int    `json:"code"`
+	Msg        string `json:"msg"`
+	TradeNo    string `json:"trade_no"`
+	OutTradeNo string `json:"out_trade_no"`
+	ApiTradeNo string `json:"api_trade_no"`
+	Type       string `json:"type"`
+	Status     int    `json:"status"`
+	Money      string `json:"money"`
+	Name       string `json:"name"`
+	Addtime    string `json:"addtime"`
+	Endtime    string `json:"endtime"`
+	Buyer      string `json:"buyer"`
+}
+
+func (c *Client) QueryOrder(outTradeNo string) (*QueryOrderResp, error) {
+	var apiUrl string
+	if c.Version == "v2" {
+		params := map[string]string{
+			"pid":          c.Pid,
+			"out_trade_no": outTradeNo,
+			"timestamp":    fmt.Sprintf("%d", time.Now().Unix()),
+		}
+		sign, err := c.Sign(params)
+		if err != nil {
+			return nil, err
+		}
+		params["sign"] = sign
+		params["sign_type"] = "RSA"
+		apiUrl = strings.TrimRight(c.ApiUrl, "/") + "/api/pay/query"
+		form := url.Values{}
+		for k, v := range params {
+			form.Set(k, v)
+		}
+		resp, err := http.Post(apiUrl, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(resp.Body)
+		var result QueryOrderResp
+		if err := json.Unmarshal(body, &result); err != nil {
+			return nil, errors.New("解析查询响应失败")
+		}
+		return &result, nil
+	}
+	apiUrl = fmt.Sprintf("%s/api.php?act=order&pid=%s&key=%s&out_trade_no=%s",
+		strings.TrimRight(c.ApiUrl, "/"), c.Pid, c.Key, outTradeNo)
+	resp, err := http.Get(apiUrl)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	var result QueryOrderResp
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, errors.New("解析查询响应失败")
+	}
+	return &result, nil
+}
+
+type CloseOrderResp struct {
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+}
+
+func (c *Client) CloseOrder(outTradeNo string) (*CloseOrderResp, error) {
+	if c.Version != "v2" {
+		return nil, errors.New("关闭订单仅支持V2接口")
+	}
+	params := map[string]string{
+		"pid":          c.Pid,
+		"out_trade_no": outTradeNo,
+		"timestamp":    fmt.Sprintf("%d", time.Now().Unix()),
+	}
+	sign, err := c.Sign(params)
+	if err != nil {
+		return nil, err
+	}
+	params["sign"] = sign
+	params["sign_type"] = "RSA"
+	apiUrl := strings.TrimRight(c.ApiUrl, "/") + "/api/pay/close"
+	form := url.Values{}
+	for k, v := range params {
+		form.Set(k, v)
+	}
+	resp, err := http.Post(apiUrl, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	var result CloseOrderResp
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, errors.New("解析关闭订单响应失败")
+	}
+	return &result, nil
+}

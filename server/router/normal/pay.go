@@ -10,4 +10,7 @@ import (
 func InitPay(group *gin.RouterGroup) {
 	g := group.Group("pay", middleware.Auth(global.Jwt))
 	g.POST("recharge", pay.Recharge)
+	g.POST("close", pay.Close)
+	g.POST("detail", pay.Detail)
+	g.POST("repay", pay.Repay)
 }

@@ -66,15 +66,14 @@ func (s *service) Recharge(claims jwt.Claims, req RechargeReq, clientIP string) 
 	}
 	db, _, log := repository.Get("")
 	gdb := db.UnderlyingDB()
-	order := &model.CommerceOrder{
-		OrderNo:  orderNo,
-		UserCode: claims.Code,
-		BizType:  model.ORDER_BIZ_RECHARGE,
-		PayType:  req.PayType,
-		Amount:   commerce.ParseDecimal(req.Amount),
-		Status:   model.ORDER_STATUS_PENDING,
-		Snapshot: model.Map{},
-		Remark:   "积分充值",
+	order := map[string]any{
+		"order_no":  orderNo,
+		"user_code": claims.Code,
+		"biz_type":  model.ORDER_BIZ_RECHARGE,
+		"pay_type":  req.PayType,
+		"amount":    commerce.ParseDecimal(req.Amount),
+		"status":    model.ORDER_STATUS_PENDING,
+		"remark":    "积分充值",
 	}
 	if err := gdb.Table("commerce_order").Create(order).Error; err != nil {
 		log.Error("创建充值订单失败", zap.Error(err))

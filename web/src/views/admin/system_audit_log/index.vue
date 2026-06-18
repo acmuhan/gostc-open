@@ -70,4 +70,10 @@ onMounted(load)
 </script>
 <style scoped>
 .pager { margin-top: 16px; display: flex; justify-content: flex-end; }
+@media (max-width: 520px) {
+  :deep(.n-data-table) { overflow-x: auto }
+  :deep(.n-card-header) { flex-wrap: wrap; gap: 8px }
+  :deep(.n-card__content) { padding: 12px !important }
+  :deep(.n-space) { flex-wrap: wrap !important }
+}
 </style>

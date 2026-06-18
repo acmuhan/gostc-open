@@ -1,6 +1,7 @@
 <script setup>
 import {h, onBeforeMount, ref, watch} from "vue";
 import {
+  apiNormalGostClientHostAutoRenew,
   apiNormalGostClientHostDelete,
   apiNormalGostClientHostDomain,
   apiNormalGostClientHostEnable,
@@ -161,6 +162,19 @@ const enableFunc = async (enable, row) => {
     refreshTable()
   } finally {
     row.enableLoading = false
+  }
+}
+
+const autoRenewFunc = async (value, row) => {
+  row.autoRenewLoading = true
+  try {
+    let res = await apiNormalGostClientHostAutoRenew({code: row.code, autoRenew: value})
+    if (res.code !== 0) {
+      row.config.autoRenew = value === 1 ? 2 : 1
+      window.$message.error(res.msg || '操作失败')
+    }
+  } finally {
+    row.autoRenewLoading = false
   }
 }
 
@@ -420,6 +434,16 @@ const operatorRenderLabel = (option) => {
               <span>速率：{{ limiterText(row.config.limiter) }}</span><br>
               <span>套餐：{{ configText(row.config) }}</span><br>
               <span>到期时间：{{ configExpText(row.config) }}</span><br>
+              <span v-if="row.config.chargingType===2">自动续费：
+                <n-switch
+                    size="small"
+                    :loading="row.autoRenewLoading"
+                    v-model:value="row.config.autoRenew"
+                    :checked-value="1"
+                    :unchecked-value="2"
+                    :on-update:value="value => {autoRenewFunc(value,row)}"
+                ></n-switch>
+              </span><br v-if="row.config.chargingType===2">
               <span>流量( IN | OUT )：{{ flowFormat(row.inputBytes) + ' | ' + flowFormat(row.outputBytes) }}</span><br>
             </div>
             <n-space justify="end" style="width: 100%">
@@ -670,5 +694,13 @@ const operatorRenderLabel = (option) => {
 </template>
 
 <style scoped lang="scss">
-
+@media (max-width: 520px) {
+  :deep(.n-space) {
+    gap: 6px !important;
+  }
+  :deep(.n-button--tiny) {
+    font-size: 12px;
+    padding: 0 6px;
+  }
+}
 </style>

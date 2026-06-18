@@ -65,3 +65,11 @@ export const apiNormalGostClientTunnelDelete = (data) => {
         data
     })
 }
+
+export const apiNormalGostClientTunnelAutoRenew = (data) => {
+    return request.request({
+        url: `${baseUrl}/auto-renew`,
+        method: 'POST',
+        data
+    })
+}

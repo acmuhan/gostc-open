@@ -5,7 +5,7 @@
     </n-grid>
     <n-card class="panel" title="CDK 兑换">
       <n-space>
-        <n-input v-model:value="cdk" placeholder="输入兑换码" style="width: 320px" />
+        <n-input v-model:value="cdk" placeholder="输入兑换码" class="cdk-input" />
         <n-button type="primary" :loading="redeemLoading" @click="redeem">兑换</n-button>
       </n-space>
     </n-card>
@@ -101,6 +101,14 @@ onMounted(() => { loadWallet(); loadLedger(); loadOrders() })
 .metric-label { color: #777; font-size: 13px }
 .metric-value { font-size: 30px; font-weight: 700; margin-top: 8px }
 .pager { justify-content: flex-end; margin-top: 16px }
+.cdk-input { width: 320px; max-width: 100% }
 .in { color: #18a058 }
 .out { color: #d03050 }
+@media (max-width: 520px) {
+  .commerce-page { gap: 8px }
+  .metric-value { font-size: 22px }
+  :deep(.n-data-table) { overflow-x: auto }
+  :deep(.n-card__content) { padding: 12px !important }
+  :deep(.n-input) { width: 100% !important }
+}
 </style>

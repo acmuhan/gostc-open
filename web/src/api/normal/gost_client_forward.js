@@ -83,3 +83,11 @@ export const apiNormalGostClientForwardDelete = (data) => {
         data
     })
 }
+
+export const apiNormalGostClientForwardAutoRenew = (data) => {
+    return request.request({
+        url: `${baseUrl}/auto-renew`,
+        method: 'POST',
+        data
+    })
+}

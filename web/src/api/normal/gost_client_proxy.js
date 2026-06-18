@@ -56,3 +56,11 @@ export const apiNormalGostClientProxyDelete = (data) => {
         data
     })
 }
+
+export const apiNormalGostClientProxyAutoRenew = (data) => {
+    return request.request({
+        url: `${baseUrl}/auto-renew`,
+        method: 'POST',
+        data
+    })
+}

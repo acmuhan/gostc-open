@@ -1,6 +1,7 @@
 <script setup>
 import {h, onBeforeMount, ref} from "vue";
 import {
+  apiNormalGostClientP2PAutoRenew,
   apiNormalGostClientP2PDelete,
   apiNormalGostClientP2PEnable,
   apiNormalGostClientP2PMigrate,
@@ -125,6 +126,19 @@ const enableFunc = async (enable, row) => {
     refreshTable()
   } finally {
     row.enableLoading = false
+  }
+}
+
+const autoRenewFunc = async (value, row) => {
+  row.autoRenewLoading = true
+  try {
+    let res = await apiNormalGostClientP2PAutoRenew({code: row.code, autoRenew: value})
+    if (res.code !== 0) {
+      row.config.autoRenew = value === 1 ? 2 : 1
+      window.$message.error(res.msg || '操作失败')
+    }
+  } finally {
+    row.autoRenewLoading = false
   }
 }
 
@@ -350,6 +364,16 @@ const operatorRenderLabel = (option)=>{
               <span>套餐：{{ configText(row.config) }}</span><br>
               <span>中继转发：{{ (row.node.p2pDisableForward !== 1 && row.forward === 1) ? '生效' : '失效' }}</span><br>
               <span>到期时间：{{ configExpText(row.config) }}</span><br>
+              <span v-if="row.config.chargingType===2">自动续费：
+                <n-switch
+                    size="small"
+                    :loading="row.autoRenewLoading"
+                    v-model:value="row.config.autoRenew"
+                    :checked-value="1"
+                    :unchecked-value="2"
+                    :on-update:value="value => {autoRenewFunc(value,row)}"
+                ></n-switch>
+              </span><br v-if="row.config.chargingType===2">
             </div>
             <n-space justify="end" style="width: 100%">
               <n-dropdown trigger="hover" size="small" :options="operatorOptions" @select="value => operatorSelect(value,row)" :render-label="operatorRenderLabel">
@@ -507,5 +531,13 @@ const operatorRenderLabel = (option)=>{
 </template>
 
 <style scoped lang="scss">
-
+@media (max-width: 520px) {
+  :deep(.n-space) {
+    gap: 6px !important;
+  }
+  :deep(.n-button--tiny) {
+    font-size: 12px;
+    padding: 0 6px;
+  }
+}
 </style>

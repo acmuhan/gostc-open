@@ -81,3 +81,11 @@ export const apiNormalGostClientHostAdmission = (data) => {
         data
     })
 }
+
+export const apiNormalGostClientHostAutoRenew = (data) => {
+    return request.request({
+        url: `${baseUrl}/auto-renew`,
+        method: 'POST',
+        data
+    })
+}

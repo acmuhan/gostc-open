@@ -65,3 +65,11 @@ export const apiNormalGostClientP2PDelete = (data) => {
         data
     })
 }
+
+export const apiNormalGostClientP2PAutoRenew = (data) => {
+    return request.request({
+        url: `${baseUrl}/auto-renew`,
+        method: 'POST',
+        data
+    })
+}

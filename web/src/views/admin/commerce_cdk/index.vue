@@ -197,4 +197,11 @@ onMounted(load)
 <style scoped>
 .commerce-page { display: flex; flex-direction: column; gap: 16px }
 .pager { justify-content: flex-end; margin-top: 16px }
+@media (max-width: 520px) {
+  .commerce-page { gap: 8px }
+  :deep(.n-data-table) { overflow-x: auto }
+  :deep(.n-card__content) { padding: 12px !important }
+  :deep(.n-form.n-form--inline .n-form-item) { margin-right: 8px !important; margin-bottom: 8px !important }
+  :deep(.n-space) { flex-wrap: wrap !important }
+}
 </style>

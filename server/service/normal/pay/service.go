@@ -50,7 +50,7 @@ func (s *service) Recharge(claims jwt.Claims, req RechargeReq, clientIP string) 
 	cache.GetSystemConfigBase(&cfgBase)
 	orderNo := commerce.NewOrderNo("R")
 	notifyUrl := cfgBase.BaseUrl + "/api/v1/public/pay/notify"
-	returnUrl := cfgBase.BaseUrl + "/api/v1/public/pay/return"
+	returnUrl := cfgBase.BaseUrl + "/normal/wallet"
 	payUrl, err := client.GetPayUrl(epay.CreateOrderReq{
 		OutTradeNo: orderNo,
 		Type:       req.PayType,
@@ -73,6 +73,7 @@ func (s *service) Recharge(claims jwt.Claims, req RechargeReq, clientIP string) 
 		PayType:  req.PayType,
 		Amount:   commerce.ParseDecimal(req.Amount),
 		Status:   model.ORDER_STATUS_PENDING,
+		Snapshot: model.Map{},
 		Remark:   "积分充值",
 	}
 	if err := gdb.Table("commerce_order").Create(order).Error; err != nil {
